@@ -75,7 +75,6 @@ namespace hai {
 
     private:
         std::mutex createOneFactLock, createFactsLock, globalEnvLock;
-        std::
         cv::Ptr<void> theCLIPSEnv;
         string rulesFilePath;
 

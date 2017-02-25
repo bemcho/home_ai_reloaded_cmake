@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(home_ai_reloaded C CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-set (CMAKE_CXX_FLAGS "-Weverything -Wno-c++98-compat -Wno-global-constructors -Wno-exit-time-destructors -Wno-padded -Wno-missing-prototypes -Wno-missing-variable-declarations")
+set (CMAKE_CXX_FLAGS "-Weverything  --analyze -Wno-c++98-compat -Wno-global-constructors -Wno-exit-time-destructors -Wno-padded -Wno-missing-prototypes -Wno-missing-variable-declarations")
 
 file(GLOB SOURCE_MAIN
         "${CMAKE_SOURCE_DIR}/headers/*.hpp"
