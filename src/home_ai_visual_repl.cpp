@@ -1,8 +1,8 @@
 #include "tbb/parallel_invoke.h"
-#include "../homeai/Annotation.hpp"
-#include "../homeai/VisualContextAnnotator.hpp"
-#include "../homeai/ClipsAdapter.hpp"
-#include "../homeai/VisualREPL.hpp"
+#include "homeai/Annotation.hpp"
+#include "homeai/VisualContextAnnotator.hpp"
+#include "homeai/ClipsAdapter.hpp"
+#include "homeai/VisualREPL.hpp"
 
 namespace homeaiapp {
 

@@ -7,11 +7,13 @@
 #include <chrono>
 #include "opencv2/core.hpp"
 #include "Annotation.hpp"
+#include "clips/clips.h"
+
 
 extern "C"
 {
 #include "clips/clips.h"
-LOCALE void *EnvFindDeftemplate(void*, char*);
+/*LOCALE void *EnvFindDeftemplate(void*, char*);
 LOCALE struct fact* EnvCreateFact(void*, void*);
 LOCALE void* EnvAddSymbol(void*, char*);
 LOCALE void* EnvAssert(void*, void*);
@@ -26,7 +28,7 @@ LOCALE intBool DestroyEnvironment(void*);
 LOCALE void* CreateEnvironment();
 LOCALE int EnvBuild(void*, char*);
 LOCALE int EnvLoad(void*, char*);
-LOCALE void EnvReset(void*);
+LOCALE void EnvReset(void*);*/
 }
 
 namespace hai {

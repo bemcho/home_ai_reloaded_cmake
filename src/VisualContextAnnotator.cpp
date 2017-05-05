@@ -1,4 +1,4 @@
-#include "../homeai/VisualContextAnnotator.hpp"
+#include "homeai/VisualContextAnnotator.hpp"
 
 namespace hai {
     VisualContextAnnotator::VisualContextAnnotator() {
