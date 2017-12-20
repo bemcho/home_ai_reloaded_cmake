@@ -130,9 +130,9 @@ namespace homeaiapp {
         faceAnnotator.loadCascadeClassifier(face_cascade_name);
         faceAnnotator.loadLBPModel(lbp_recognizer_name);
 
-        objectsAnnotator.loadCAFFEModel(modelBin, modelTxt, "synset_words.txt");
+        //objectsAnnotator.loadCAFFEModel(modelBin, modelTxt, "synset_words.txt");
         objectsAnnotator.loadLBPModel(lbp_recognizer_name);
-        auto startRepl = [](std::size_t index, vector<shared_ptr<VisualREPL>>& cams) {
+        auto startRepl = [](std::size_t index, vector<shared_ptr<VisualREPL>>& cams, const std::string& windowName) {
             if (cams[index]->startAt(static_cast<int>(index), 30)) {
                 cout << "--(!)Camera found on " << index << " device index." << endl;
                 return true;
@@ -145,34 +145,36 @@ namespace homeaiapp {
         };
         bool atLeastOneCamera = false;
         for (std::size_t i = 0; i < MAX_CAMERAS; i++) {
+            std::string name {window_name + " Stream " + std::to_string(i)};
             switch (i) {
                 case 0: {
                     cameras.push_back(make_shared<VisualREPL>(
-                            VisualREPL(window_name + " Stream " + std::to_string(i), clips, annotateObjectsFN,
+                            VisualREPL(name, clips, annotateObjectsFN,
                                        updateLBPModelFN, WINDOW_SHOW)));
-                    atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
+                    atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras, name);
                     break;
                 }
                 case 1: {
                     cameras.push_back(make_shared<VisualREPL>(
-                            VisualREPL(window_name + " Stream " + std::to_string(i), clips, annotateFaceContoursFN,
+                            VisualREPL(name, clips, annotateFaceContoursFN,
                                        updateLBPModelFN, WINDOW_SHOW)));
-                    atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
+                    atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras, name);
                     break;
                 }
                 case 2: {
                     cameras.push_back(make_shared<VisualREPL>(
-                            VisualREPL(window_name + " Stream " + std::to_string(i), clips, annotateTextContoursFN,
+                            VisualREPL(name, clips, annotateTextContoursFN,
                                        updateLBPModelFN, WINDOW_SHOW)));
-                    atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
+                    atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras, name);
 
                     break;
                 }
                 case 3: {
                     cameras.push_back(make_shared<VisualREPL>(
-                            VisualREPL(window_name + " Stream " + std::to_string(i), clips, annotateFaceContoursFN,
+                            VisualREPL(name, clips, annotateFaceContoursFN,
                                        updateLBPModelFN, WINDOW_SHOW)));
-                    atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
+                    atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras, name);
+
                     break;
                 }
                 default : {
@@ -188,7 +190,7 @@ namespace homeaiapp {
         while (true) {
 
             this_thread::sleep_for(std::chrono::milliseconds(5));
-            //DATA_OBJECT rv;
+            DATA_OBJECT rv;
             //clips.envEval("(facts)", rv);
             clips.envRun();
             this_thread::sleep_for(std::chrono::milliseconds(5));

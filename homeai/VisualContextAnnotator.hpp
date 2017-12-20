@@ -6,11 +6,12 @@
 #include <fstream>
 #include <iostream>
 
-#include <opencv2/dnn.hpp>
+#include <opencv2/ml.hpp>
 #include "opencv2/core.hpp"
 #include "opencv2/objdetect.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/face.hpp"
+#include "opencv2/face/facerec.hpp"
 #include "opencv2/videoio.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
@@ -78,13 +79,13 @@ namespace hai {
         Ptr<face::FaceRecognizer> model;
         unique_ptr<CascadeClassifier> cascade_classifier;
         unique_ptr<tesseract::TessBaseAPI> tess;
-        unique_ptr<dnn::Net> net;
+        //unique_ptr<dnn::Net> net;
         std::mutex cascadeClassLock, lbpLock, lbp2Lock, lbpInRectLock, caffeLock, caffe2Lock, caffeInRectLock, tessLock, tess2Lock, tessInRectLock, morphGradientLock, contoursWithCannyLock, objectsWithCannyLock, training, training2;
 
         double maxDistance;
         string lbpModelPath;
 
-        void getMaxClass(dnn::Blob& probBlob, int& classId, double& classProb);
+       // void getMaxClass(dnn::Blob& probBlob, int& classId, double& classProb);
 
         std::vector<String> readClassNames(const string filename);
 
