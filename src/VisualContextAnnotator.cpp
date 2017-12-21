@@ -469,4 +469,20 @@ namespace hai {
       tbb::mutex::scoped_lock lck{imshow_mutex};
       cv::imshow(name, frame);
   }
+
+  tbb::mutex VisualContextAnnotator::cascadeClassLock;
+  tbb::mutex VisualContextAnnotator::lbpLock;
+  tbb::mutex VisualContextAnnotator::lbp2Lock;
+  tbb::mutex VisualContextAnnotator::lbpInRectLock;
+  tbb::mutex VisualContextAnnotator::caffeLock;
+  tbb::mutex VisualContextAnnotator::caffe2Lock;
+  tbb::mutex VisualContextAnnotator::caffeInRectLock;
+  tbb::mutex VisualContextAnnotator::tessLock;
+  tbb::mutex VisualContextAnnotator::tess2Lock;
+  tbb::mutex VisualContextAnnotator::tessInRectLock;
+  tbb::mutex VisualContextAnnotator::morphGradientLock;
+  tbb::mutex VisualContextAnnotator::contoursWithCannyLock;
+  tbb::mutex VisualContextAnnotator::objectsWithCannyLock;
+  tbb::mutex VisualContextAnnotator::training;
+  tbb::mutex VisualContextAnnotator::training2;
 }

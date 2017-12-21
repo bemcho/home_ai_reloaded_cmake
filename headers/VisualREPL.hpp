@@ -5,7 +5,6 @@
 #include "VisualContextAnnotator.hpp"
 #include  <thread>
 #include  "tbb/parallel_invoke.h"
-#include "tbb/critical_section.h"
 #include "tbb/mutex.h"
 #include <functional>
 #include <random>
@@ -61,7 +60,7 @@ namespace hai {
           localTrainFN =
             [&]
               (cv::Mat f_g) {
-              std::lock_guard<std::mutex> lock{training};
+              tbb::mutex::scoped_lock lck{training};
               if (gatherSamplesFlag && samples.size() < samplesCount) {
                   samples.push_back(f_g(trainingRect));
                   return;
@@ -70,9 +69,7 @@ namespace hai {
               startTrainingFlag = true;
               if (startTrainingFlag && !trainingInProgressFlag) {
                   startTrainingFlag = false;
-                  cs.lock();
                   trainFN(samples, trainingLabel, trainingOntology, trainingInProgressFlag);
-                  cs.unlock();
               }
             };
 
@@ -81,8 +78,7 @@ namespace hai {
       }
 
    private:
-      tbb::critical_section cs;
-      std::mutex training;
+      tbb::mutex training;
       std::thread tVisualLoop, tTraining;
       VideoCapture capture;
       string name;

@@ -98,7 +98,7 @@ namespace hai {
       unique_ptr<CascadeClassifier> cascade_classifier;
       unique_ptr<tesseract::TessBaseAPI> tess;
       //unique_ptr<dnn::Net> net;
-      tbb::mutex cascadeClassLock, lbpLock, lbp2Lock, lbpInRectLock, caffeLock, caffe2Lock, caffeInRectLock, tessLock,
+      static tbb::mutex cascadeClassLock, lbpLock, lbp2Lock, lbpInRectLock, caffeLock, caffe2Lock, caffeInRectLock, tessLock,
         tess2Lock, tessInRectLock, morphGradientLock, contoursWithCannyLock, objectsWithCannyLock, training, training2;
 
       double maxDistance;
