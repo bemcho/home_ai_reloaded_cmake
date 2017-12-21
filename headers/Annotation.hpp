@@ -8,7 +8,7 @@ namespace hai {
    public:
       Annotation() noexcept : rectangle{cv::Rect(0, 0, 0, 0)}, description{"empty"}, type{"empty"} {}
 
-      Annotation(std::vector<cv::Point> aContour, std::string aDesc, std::string aType) noexcept : contour{aContour},
+      Annotation(const std::vector<cv::Point>& aContour,const std::string& aDesc,const std::string& aType) noexcept : contour{aContour},
                                                                                                    description{aDesc},
                                                                                                    type{aType} {}
 

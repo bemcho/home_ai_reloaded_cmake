@@ -207,8 +207,7 @@ namespace hai {
 
   Annotation VisualContextAnnotator::predictWithLBPInRectangle(const Rect &detect, const Mat &frame_gray,
                                                                const string &annotationType) noexcept {
-      tbb::mutex::scoped_lock lck{lbpInRectLock};
-      Mat face = frame_gray(detect);
+      const Mat face = frame_gray(detect);
       int predictedLabel = -1;
       double confidence = 0.0;
 
@@ -245,7 +244,7 @@ namespace hai {
   };
 
   vector<Annotation> VisualContextAnnotator::predictWithLBP(const Mat &frame_gray) noexcept {
-      tbb::mutex::scoped_lock lck{lbp2Lock};
+      tbb::mutex::scoped_lock lck{lbpLock};
       static tbb::affinity_partitioner affinityLBP;
 
       vector<Rect> detects = detectWithCascadeClassifier(frame_gray);
@@ -253,13 +252,12 @@ namespace hai {
       if (detects.size() <= 0)
           return vector<Annotation>();
 
-      PredictWithLBPBody parallelLBP(*this, detects, frame_gray, "human");
+      vector<Annotation> result;
+      for (auto &&rect : detects) {
+          result.push_back(predictWithLBPInRectangle(rect, frame_gray, "human"));
+      }
 
-      tbb::parallel_for(tbb::blocked_range<size_t>(0, detects.size()), // Index space for loop
-                        parallelLBP,                    // Body of loop
-                        affinityLBP);
-
-      return std::move(parallelLBP.result_);
+      return result;
   }
 
   vector<Annotation> VisualContextAnnotator::predictWithLBP(const vector<Rect> &detects, const Mat &frame_gray,
@@ -270,13 +268,12 @@ namespace hai {
       if (detects.size() <= 0)
           return vector<Annotation>();
 
-      PredictWithLBPBody parallelLBP(*this, detects, frame_gray, annotationType);
+      vector<Annotation> result;
+      for (auto &&rect : detects) {
+          result.push_back(predictWithLBPInRectangle(rect, frame_gray, annotationType));
+      }
 
-      tbb::parallel_for(tbb::blocked_range<size_t>(0, detects.size()), // Index space for loop
-                        parallelLBP,                    // Body of loop
-                        affinityLBP);
-
-      return std::move(parallelLBP.result_);
+      return result;
   }
 
 //    Annotation VisualContextAnnotator::predictWithCAFFEInRectangle(const Rect detect, const Mat frame) noexcept {
@@ -380,7 +377,6 @@ namespace hai {
 
   Annotation
   VisualContextAnnotator::predictWithTESSERACTInRectangle(const Rect &detect, const Mat &frame_gray) noexcept {
-      tbb::mutex::scoped_lock lck{tessInRectLock};
       Mat sub = frame_gray(detect).clone();
       if (detect.height < 50) {
           resize(sub, sub, Size(detect.width*3, detect.height*3));
@@ -427,29 +423,27 @@ namespace hai {
       if (detects.size() <= 0)
           return vector<Annotation>();
 
-      PredictWithTESSERACTBody parallelTESSERACT(*this, detects, frame_gray);
+      vector<Annotation> result;
+      for (auto &&rect : detects) {
+          result.push_back(predictWithTESSERACTInRectangle(rect, frame_gray));
+      }
 
-      tbb::parallel_for(tbb::blocked_range<size_t>(0, detects.size()), // Index space for loop
-                        parallelTESSERACT,                    // Body of loop
-                        affinityTESSERACT);
-
-      return std::move(parallelTESSERACT.result_);
+      return result;
   }
 
   vector<Annotation>
   VisualContextAnnotator::predictWithTESSERACT(const vector<Rect> &detects, const Mat &frame_gray) noexcept {
-      tbb::mutex::scoped_lock lck{tess2Lock};
+      tbb::mutex::scoped_lock lck{tessLock};
       static tbb::affinity_partitioner affinityTESSERACT2;
 
       if (detects.size() <= 0)
           return vector<Annotation>();
-      PredictWithTESSERACTBody parallelTESSERACT(*this, detects, frame_gray);
+      vector<Annotation> result;
+      for (auto &&rect : detects) {
+          result.push_back(predictWithTESSERACTInRectangle(rect, frame_gray));
+      }
 
-      tbb::parallel_for(tbb::blocked_range<size_t>(0, detects.size()), // Index space for loop
-                        parallelTESSERACT,                    // Body of loop
-                        affinityTESSERACT2);
-
-      return std::move(parallelTESSERACT.result_);
+      return result;
   }
 
   tbb::mutex VisualContextAnnotator::wait_key_mutex;
@@ -471,14 +465,8 @@ namespace hai {
 
   tbb::mutex VisualContextAnnotator::cascadeClassLock;
   tbb::mutex VisualContextAnnotator::lbpLock;
-  tbb::mutex VisualContextAnnotator::lbp2Lock;
-  tbb::mutex VisualContextAnnotator::lbpInRectLock;
   tbb::mutex VisualContextAnnotator::caffeLock;
-  tbb::mutex VisualContextAnnotator::caffe2Lock;
-  tbb::mutex VisualContextAnnotator::caffeInRectLock;
   tbb::mutex VisualContextAnnotator::tessLock;
-  tbb::mutex VisualContextAnnotator::tess2Lock;
-  tbb::mutex VisualContextAnnotator::tessInRectLock;
   tbb::mutex VisualContextAnnotator::morphGradientLock;
   tbb::mutex VisualContextAnnotator::contoursWithCannyLock;
   tbb::mutex VisualContextAnnotator::objectsWithCannyLock;

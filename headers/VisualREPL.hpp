@@ -194,8 +194,6 @@ namespace hai {
                   }
 
                   VisualContextAnnotator::showImage(name, frame);
-                  //this sleep fixes freeze of the window draw
-                  this_thread::sleep_for(std::chrono::milliseconds(10));
               }
 
               if (VisualContextAnnotator::checkKeyWasPressed(1, 27)) {
