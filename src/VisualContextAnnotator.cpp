@@ -35,14 +35,14 @@ namespace hai {
   }
 
   void VisualContextAnnotator::train(vector<cv::Mat> samples, int label, string ontology) noexcept {
-      std::lock_guard<std::mutex> lck{training};
+      tbb::mutex::scoped_lock lck{training};
       vector<int> labels(samples.size(), label);
       model->train(samples, labels);
       model->setLabelInfo(label, ontology);
   }
 
   void VisualContextAnnotator::update(vector<cv::Mat> samples, int label, string ontology) noexcept {
-      std::lock_guard<std::mutex> lock{training2};
+      tbb::mutex::scoped_lock lock{training2};
       vector<int> labels(samples.size(), label);
       model->update(samples, labels);
       model->setLabelInfo(label, ontology);
@@ -76,7 +76,7 @@ namespace hai {
 //    }
 
   vector<Rect> VisualContextAnnotator::detectWithCascadeClassifier(const Mat &frame_gray, const Size &minSize)noexcept {
-      std::lock_guard<std::mutex> lck{cascadeClassLock};
+      tbb::mutex::scoped_lock lck{cascadeClassLock};
       vector<Rect> result;
       Mat frame_gray_local(frame_gray);
       cascade_classifier->detectMultiScale(frame_gray_local, result, 1.1, 10, 0, minSize, Size());
@@ -85,7 +85,7 @@ namespace hai {
 
   vector<Rect> VisualContextAnnotator::detectWithMorphologicalGradient(const Mat &frame_gray, const Size &minSize,
                                                                        Size kernelSize) noexcept {
-      std::lock_guard<std::mutex> lck{morphGradientLock};
+      tbb::mutex::scoped_lock lck{morphGradientLock};
       vector<Rect> result;
       /**http://stackoverflow.com/questions/23506105/extracting-text-opencv**/
 
@@ -136,7 +136,7 @@ namespace hai {
   VisualContextAnnotator::detectContoursWithCanny(const Mat &frame_gray,
                                                   const double &lowThreshold,
                                                   const Size &minSize) noexcept {
-      std::lock_guard<std::mutex> lck{contoursWithCannyLock};
+      tbb::mutex::scoped_lock lck{contoursWithCannyLock};
       vector<Annotation> result;
       Mat detected_edges;
       /// Reduce noise with a kernel 3x3
@@ -173,7 +173,7 @@ namespace hai {
   VisualContextAnnotator::detectObjectsWithCanny(const Mat &frame_gray,
                                                  const double &lowThreshold,
                                                  const Size &minSize) noexcept {
-      std::lock_guard<std::mutex> lck{objectsWithCannyLock};
+      tbb::mutex::scoped_lock lck{objectsWithCannyLock};
       vector<Rect> result;
 
       Mat detected_edges;
@@ -208,7 +208,7 @@ namespace hai {
 
   Annotation VisualContextAnnotator::predictWithLBPInRectangle(const Rect &detect, const Mat &frame_gray,
                                                                const string &annotationType) noexcept {
-      std::lock_guard<std::mutex> lck{lbpInRectLock};
+      tbb::mutex::scoped_lock lck{lbpInRectLock};
       Mat face = frame_gray(detect);
       int predictedLabel = -1;
       double confidence = 0.0;
@@ -246,7 +246,7 @@ namespace hai {
   };
 
   vector<Annotation> VisualContextAnnotator::predictWithLBP(const Mat &frame_gray) noexcept {
-      std::lock_guard<std::mutex> lck{lbp2Lock};
+      tbb::mutex::scoped_lock lck{lbp2Lock};
       static tbb::affinity_partitioner affinityLBP;
 
       vector<Rect> detects = detectWithCascadeClassifier(frame_gray);
@@ -265,7 +265,7 @@ namespace hai {
 
   vector<Annotation> VisualContextAnnotator::predictWithLBP(const vector<Rect> &detects, const Mat &frame_gray,
                                                             const string &annotationType) noexcept {
-      std::lock_guard<std::mutex> lck{lbpLock};
+      tbb::mutex::scoped_lock lck{lbpLock};
       static tbb::affinity_partitioner affinityLBP;
 
       if (detects.size() <= 0)
@@ -282,7 +282,7 @@ namespace hai {
 
 //    Annotation VisualContextAnnotator::predictWithCAFFEInRectangle(const Rect detect, const Mat frame) noexcept {
 //
-//        std::lock_guard<std::mutex> lck{caffeInRectLock};
+//        tbb::mutex::scoped_lock lck{caffeInRectLock};
 //        cv::Mat img(Scalar::all(0));
 //        resize(frame(detect), img, Size(244, 244));
 //
@@ -322,7 +322,7 @@ namespace hai {
 //    };
 
 //    vector<Annotation> VisualContextAnnotator::predictWithCAFFE(const Mat frame, const Mat frame_gray) noexcept {
-//        std::lock_guard<std::mutex> lck{caffe2Lock};
+//        tbb::mutex::scoped_lock lck{caffe2Lock};
 //        static tbb::affinity_partitioner affinityDNN2;
 //        vector<Rect> detects = detectObjectsWithCanny(frame_gray);
 //
@@ -339,7 +339,7 @@ namespace hai {
 //    }
 
 //    vector<Annotation> VisualContextAnnotator::predictWithCAFFE(const vector<Rect> detects, const Mat frame) noexcept {
-//        std::lock_guard<std::mutex> lck{caffeLock};
+//        tbb::mutex::scoped_lock lck{caffeLock};
 //        static tbb::affinity_partitioner affinityDNN;
 //
 //        if (detects.size() <= 0)
@@ -381,7 +381,7 @@ namespace hai {
 
   Annotation
   VisualContextAnnotator::predictWithTESSERACTInRectangle(const Rect &detect, const Mat &frame_gray) noexcept {
-      std::lock_guard<std::mutex> lck{tessInRectLock};
+      tbb::mutex::scoped_lock lck{tessInRectLock};
       Mat sub = frame_gray(detect).clone();
       if (detect.height < 50) {
           resize(sub, sub, Size(detect.width*3, detect.height*3));
@@ -421,7 +421,7 @@ namespace hai {
   };
 
   vector<Annotation> VisualContextAnnotator::predictWithTESSERACT(const Mat &frame_gray) noexcept {
-      std::lock_guard<std::mutex> lck{tessLock};
+      tbb::mutex::scoped_lock lck{tessLock};
       static tbb::affinity_partitioner affinityTESSERACT;
 
       vector<Rect> detects = detectWithMorphologicalGradient(frame_gray);
@@ -439,7 +439,7 @@ namespace hai {
 
   vector<Annotation>
   VisualContextAnnotator::predictWithTESSERACT(const vector<Rect> &detects, const Mat &frame_gray) noexcept {
-      std::lock_guard<std::mutex> lck{tess2Lock};
+      tbb::mutex::scoped_lock lck{tess2Lock};
       static tbb::affinity_partitioner affinityTESSERACT2;
 
       if (detects.size() <= 0)
@@ -453,9 +453,9 @@ namespace hai {
       return std::move(parallelTESSERACT.result_);
   }
 
-  std::mutex VisualContextAnnotator::wait_key_mutex;
+  tbb::mutex VisualContextAnnotator::wait_key_mutex;
   bool VisualContextAnnotator::checkKeyWasPressed(const int timeMillisToWait, const int key) noexcept {
-      std::lock_guard<std::mutex> lck{wait_key_mutex};
+      tbb::mutex::scoped_lock lck{wait_key_mutex};
 
       if (waitKey(timeMillisToWait)==key) {
           return true;
@@ -464,9 +464,9 @@ namespace hai {
       return false;
   }
 
-  std::mutex VisualContextAnnotator::imshow_mutex;
+  tbb::mutex VisualContextAnnotator::imshow_mutex;
   void VisualContextAnnotator::showImage(const string name, const Mat &frame) {
-      std::lock_guard<std::mutex> lck{imshow_mutex};
+      tbb::mutex::scoped_lock lck{imshow_mutex};
       cv::imshow(name, frame);
   }
 }

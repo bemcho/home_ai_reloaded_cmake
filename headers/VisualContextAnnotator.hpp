@@ -19,7 +19,7 @@
 #include "tesseract/baseapi.h"
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_for.h"
-#include <mutex>
+#include <tbb/mutex.h>
 
 namespace hai {
   using namespace std;
@@ -98,7 +98,7 @@ namespace hai {
       unique_ptr<CascadeClassifier> cascade_classifier;
       unique_ptr<tesseract::TessBaseAPI> tess;
       //unique_ptr<dnn::Net> net;
-      std::mutex cascadeClassLock, lbpLock, lbp2Lock, lbpInRectLock, caffeLock, caffe2Lock, caffeInRectLock, tessLock,
+      tbb::mutex cascadeClassLock, lbpLock, lbp2Lock, lbpInRectLock, caffeLock, caffe2Lock, caffeInRectLock, tessLock,
         tess2Lock, tessInRectLock, morphGradientLock, contoursWithCannyLock, objectsWithCannyLock, training, training2;
 
       double maxDistance;
@@ -110,6 +110,6 @@ namespace hai {
 
       std::vector<String> classNames;
 
-      static std::mutex wait_key_mutex, imshow_mutex;
+      static tbb::mutex wait_key_mutex, imshow_mutex;
   };
 }
