@@ -80,8 +80,8 @@ namespace hai {
       /**
      * Waits timeMillisToWait and the checks if key was pressed
      * This method uses global lock (static mutex)
-     * @param timeMillisToWait
-     * @param key
+     * @param timeMillisToWait milliseconds to wait before check for key
+     * @param key int value
      * @return true if key was pressed
      */
       static bool checkKeyWasPressed(const int timeMillisToWait, const int key) noexcept;
@@ -89,7 +89,7 @@ namespace hai {
       /**
        * Calls cv::imshow with global lock
        * Draws: frame in window with: name
-       * @param frame
+       * @param frame cv::Mat to be shown
        */
       static void showImage(const string name, const Mat &frame);
 

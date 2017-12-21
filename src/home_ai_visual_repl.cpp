@@ -142,25 +142,25 @@ namespace homeaiapp {
       };
       bool atLeastOneCamera = false;
       for (std::size_t i = 0; i < MAX_CAMERAS; i++) {
-          std::string name{window_name + " Stream " + std::to_string(i)};
+          std::string name{window_name + " Stream >> " + std::to_string(i)};
           switch (i) {
               case 0: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + "@annotateObjectsFN", clips, annotateObjectsFN,
+                    VisualREPL(name + " [annotateObjectsFN]", clips, annotateObjectsFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
                   break;
               }
               case 1: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + "@annotateFaceContoursFN", clips, annotateFaceContoursFN,
+                    VisualREPL(name + " [annotateFaceContoursFN]", clips, annotateFaceContoursFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
                   break;
               }
               case 2: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + "@annotateTextContoursFN", clips, annotateTextContoursFN,
+                    VisualREPL(name + " [annotateTextContoursFN]", clips, annotateTextContoursFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
 
@@ -168,7 +168,7 @@ namespace homeaiapp {
               }
               case 3: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + "@annotateFaceContoursFN", clips, annotateFaceContoursFN,
+                    VisualREPL(name + " [annotateFaceContoursFN]", clips, annotateFaceContoursFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
 
@@ -188,10 +188,10 @@ namespace homeaiapp {
           this_thread::sleep_for(std::chrono::milliseconds(1000));
           //-- bail out if escape was pressed
           //DATA_OBJECT rv;
-          //clips.envEval("(facts)", rv);
+          // clips.envEval("(facts)", rv);
           clips.envRun();
 
-          if (VisualContextAnnotator::checkKeyWasPressed(1,27)) {
+          if (VisualContextAnnotator::checkKeyWasPressed(1, 27)) {
               std::terminate();
               return EXIT_SUCCESS;
           }

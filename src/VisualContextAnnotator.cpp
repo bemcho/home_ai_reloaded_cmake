@@ -6,7 +6,6 @@ namespace hai {
       tess = std::make_unique<tesseract::TessBaseAPI>();
       //net = make_unique<dnn::Net>();
       cascade_classifier = make_unique<CascadeClassifier>();
-
   }
 
   VisualContextAnnotator::~VisualContextAnnotator() {

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(home_ai_reloaded C CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-set (CMAKE_CXX_FLAGS "-Weverything  -Wno-c++98-compat -Wno-global-constructors -Wno-exit-time-destructors -Wno-padded -Wno-missing-prototypes -Wno-missing-variable-declarations")
+set (CMAKE_CXX_FLAGS "-O3 -Weverything  -Wno-c++98-compat -Wno-global-constructors -Wno-exit-time-destructors -Wno-padded -Wno-missing-prototypes -Wno-missing-variable-declarations")
 
 file(GLOB SOURCE_MAIN
         "${CMAKE_SOURCE_DIR}/headers/*.hpp"
@@ -52,5 +52,5 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 set(LIBS ${LIBS} ${OpenCV_LIBS} ${Tesseract_LIBS} ${Boost_LIBS} ${TBB_LIBRARIES} ${Clips_LIBRARY}  Threads::Threads)
-add_executable(home_ai_reloaded ${SOURCE_MAIN} )
+add_executable(home_ai_reloaded ${SOURCE_MAIN} src/ClipsAdapter.cpp)
 target_link_libraries( home_ai_reloaded  ${LIBS})

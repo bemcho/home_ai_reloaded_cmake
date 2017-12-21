@@ -1,13 +1,14 @@
 #pragma once
 
-#include <string>
-#include "ClipsAdapter.hpp"
-#include "VisualContextAnnotator.hpp"
-#include  <thread>
-#include  "tbb/parallel_invoke.h"
-#include "tbb/mutex.h"
 #include <functional>
 #include <random>
+#include <string>
+#include <thread>
+#include "tbb/parallel_invoke.h"
+#include "tbb/mutex.h"
+
+#include "ClipsAdapter.hpp"
+#include "VisualContextAnnotator.hpp"
 
 namespace hai {
   class VisualREPL {
@@ -193,10 +194,12 @@ namespace hai {
                   }
 
                   VisualContextAnnotator::showImage(name, frame);
+                  //this sleep fixes freeze of the window draw
+                  this_thread::sleep_for(std::chrono::milliseconds(10));
+              }
 
-                  if (VisualContextAnnotator::checkKeyWasPressed(1, 27)) {
-                      break;
-                  }
+              if (VisualContextAnnotator::checkKeyWasPressed(1, 27)) {
+                  break;
               }
           }
           capture.release();
