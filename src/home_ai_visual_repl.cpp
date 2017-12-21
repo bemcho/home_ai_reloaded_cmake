@@ -185,16 +185,12 @@ namespace homeaiapp {
       }
 
       while (true) {
-          this_thread::sleep_for(std::chrono::milliseconds(1000));
+          this_thread::sleep_for(std::chrono::milliseconds(500));
           //-- bail out if escape was pressed
-          //DATA_OBJECT rv;
-          // clips.envEval("(facts)", rv);
+          DATA_OBJECT rv;
+          clips.envEval("(facts)", rv);
           clips.envRun();
-
-          if (VisualContextAnnotator::checkKeyWasPressed(1, 27)) {
-              std::terminate();
-              return EXIT_SUCCESS;
-          }
+          clips.envReset();
       }
   }
 }

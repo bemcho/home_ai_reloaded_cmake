@@ -77,8 +77,7 @@ namespace hai {
   vector<Rect> VisualContextAnnotator::detectWithCascadeClassifier(const Mat &frame_gray, const Size &minSize)noexcept {
       tbb::mutex::scoped_lock lck{cascadeClassLock};
       vector<Rect> result;
-      Mat frame_gray_local(frame_gray);
-      cascade_classifier->detectMultiScale(frame_gray_local, result, 1.1, 8, 0|CASCADE_SCALE_IMAGE, minSize, Size());
+      cascade_classifier->detectMultiScale(frame_gray, result, 1.1, 8, 0|CASCADE_SCALE_IMAGE, minSize, Size());
       return result;
   }
 
@@ -244,7 +243,7 @@ namespace hai {
   };
 
   vector<Annotation> VisualContextAnnotator::predictWithLBP(const Mat &frame_gray) noexcept {
-      tbb::mutex::scoped_lock lck{lbpLock};
+      tbb::mutex::scoped_lock lck{lbpLock1};
       static tbb::affinity_partitioner affinityLBP;
 
       vector<Rect> detects = detectWithCascadeClassifier(frame_gray);
@@ -433,7 +432,7 @@ namespace hai {
 
   vector<Annotation>
   VisualContextAnnotator::predictWithTESSERACT(const vector<Rect> &detects, const Mat &frame_gray) noexcept {
-      tbb::mutex::scoped_lock lck{tessLock};
+      tbb::mutex::scoped_lock lck{tessLock1};
       static tbb::affinity_partitioner affinityTESSERACT2;
 
       if (detects.size() <= 0)
@@ -462,14 +461,4 @@ namespace hai {
       tbb::mutex::scoped_lock lck{imshow_mutex};
       cv::imshow(name, frame);
   }
-
-  tbb::mutex VisualContextAnnotator::cascadeClassLock;
-  tbb::mutex VisualContextAnnotator::lbpLock;
-  tbb::mutex VisualContextAnnotator::caffeLock;
-  tbb::mutex VisualContextAnnotator::tessLock;
-  tbb::mutex VisualContextAnnotator::morphGradientLock;
-  tbb::mutex VisualContextAnnotator::contoursWithCannyLock;
-  tbb::mutex VisualContextAnnotator::objectsWithCannyLock;
-  tbb::mutex VisualContextAnnotator::training;
-  tbb::mutex VisualContextAnnotator::training2;
 }
