@@ -144,7 +144,7 @@ namespace hai {
           vector<Annotation> annotations;
           capture >> frame;
           if (showWindow) {
-              namedWindow(name, WINDOW_AUTOSIZE & WINDOW_GUI_EXPANDED);
+              namedWindow(name, WINDOW_AUTOSIZE);
               imshow(name, frame);
               setMouseCallback(name, VisualREPL::onMouseCallback, this);
           }
