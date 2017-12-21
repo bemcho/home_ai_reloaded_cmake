@@ -78,7 +78,7 @@ namespace hai {
       tbb::mutex::scoped_lock lck{cascadeClassLock};
       vector<Rect> result;
       Mat frame_gray_local(frame_gray);
-      cascade_classifier->detectMultiScale(frame_gray_local, result, 1.1, 10, 0, minSize, Size());
+      cascade_classifier->detectMultiScale(frame_gray_local, result, 1.1, 8, 0|CASCADE_SCALE_IMAGE, minSize, Size());
       return result;
   }
 
