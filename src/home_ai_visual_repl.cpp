@@ -8,10 +8,14 @@ namespace homeaiapp {
 
   using namespace hai;
 
-  std::string face_cascade_name{"cascade_frontalface.xml"};
-  std::string window_name{"Home AI"};
-  std::string lbp_recognizer_name{"lbphFaceRecognizer.xml"};
-  std::string clips_vca_rules{"visualcontextrules.clp"};
+  const std::string window_name{"Home AI"};
+  const std::string face_cascade_name{"./face/cascade_frontalface.xml"};
+  const std::string lbp_face_recognizer_name{"./face/lbphFaceRecognizer.xml"};
+  const std::string lbp_object_recognizer_name{"./object/lbphObjectRecognizer.xml"};
+  const std::string clips_vca_rules{"./clips/visualcontextrules.clp"};
+  const std::string caffe_prototxt_file = "./caffe/bvlc_googlenet.prototxt";
+  const std::string caffe_model_file = "./caffe/bvlc_googlenet.caffemodel";
+  const std::string caffe_synset_words_file = "./caffe/synset_words.txt";
 
   ClipsAdapter clips(clips_vca_rules);
 
@@ -46,17 +50,28 @@ namespace homeaiapp {
       return result;
   }
 
+  vector<Annotation> annotateObjectsWithCaffeFN(const Mat &f, const Mat &f_g) noexcept {
+      vector<Annotation> result;
+      vector<Annotation> dnn;
+
+      dnn =  caffeAnnotator.predictWithCAFFE(textAnnotator.detectObjectsWithCanny(f_g), f);
+
+      result.insert(result.end(), dnn.begin(), dnn.end());
+
+      return result;
+  }
+
   vector<Annotation> annotateObjectsFN(const Mat &f, const Mat &f_g) noexcept {
       vector<Annotation> result;
       vector<Annotation> face;
-      vector<Annotation> dnn;
+      vector<Annotation> objects;
       vector<Annotation> contours;
 
       tbb::parallel_invoke(
 
         [&]
           () {
-          dnn = caffeAnnotator.predictWithCAFFE(textAnnotator.detectObjectsWithCanny(f_g), f);
+          objects = objectsAnnotator.predictWithLBP(textAnnotator.detectObjectsWithCanny(f_g), f_g, "object");
         },
 
         [&]
@@ -70,7 +85,7 @@ namespace homeaiapp {
       );
       result.insert(result.end(), face.begin(), face.end());
       result.insert(result.end(), contours.begin(), contours.end());
-      result.insert(result.end(), dnn.begin(), dnn.end());
+      result.insert(result.end(), objects.begin(), objects.end());
 
       return result;
   }
@@ -105,21 +120,19 @@ namespace homeaiapp {
       aTInProgress = false;
   }
 
-/**
-* @function main
-*/
+  /**
+      * @function main
+      */
   int main(int argc, char **argv) {
 
       textAnnotator.loadTESSERACTModel(".", "eng");
 
-      String modelTxt = "bvlc_googlenet.prototxt";
-      String modelBin = "bvlc_googlenet.caffemodel";
-
       faceAnnotator.loadCascadeClassifier(face_cascade_name);
-      faceAnnotator.loadLBPModel(lbp_recognizer_name);
+      faceAnnotator.loadLBPModel(lbp_face_recognizer_name);
 
-      caffeAnnotator.loadCAFFEModel(modelBin, modelTxt, "synset_words.txt");
-      objectsAnnotator.loadLBPModel(lbp_recognizer_name);
+      caffeAnnotator.loadCAFFEModel(caffe_model_file, caffe_prototxt_file, caffe_synset_words_file);
+      objectsAnnotator.loadLBPModel(lbp_object_recognizer_name);
+
       auto startRepl = [](std::size_t index, vector<shared_ptr<VisualREPL>> &cams) noexcept {
         if (cams[index]->startAt(static_cast<int>(index), 30)) {
             cout << "--(!)Camera found on " << index << " device index." << endl;
@@ -144,7 +157,7 @@ namespace homeaiapp {
               }
               case 1: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + " [annotateFacesFN]", clips, annotateFacesFN,
+                    VisualREPL(name + " [annotateFacesFN]", clips, annotateObjectsWithCaffeFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
                   break;
@@ -159,7 +172,7 @@ namespace homeaiapp {
               }
               case 3: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + " [annotateContoursFN]", clips, annotateObjectsWithLBPFN,
+                    VisualREPL(name + " [annotateContoursFN]", clips, annotateFacesFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
 
@@ -176,7 +189,7 @@ namespace homeaiapp {
       }
 
       while (true) {
-          this_thread::sleep_for(std::chrono::milliseconds(500));
+          this_thread::sleep_for(std::chrono::milliseconds(1000));
           //-- bail out if escape was pressed
           DATA_OBJECT rv;
           clips.envEval("(facts)", rv);

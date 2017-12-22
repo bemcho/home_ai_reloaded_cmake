@@ -5,7 +5,8 @@
     Clips
     TBB
     Tesseract
-    Opencv 3.3+ with contrib
+    Caffe
+    Opencv 3.3+ with contrib(face ,dnn and their deps)
 
 --- Build
     

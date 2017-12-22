@@ -212,27 +212,6 @@ namespace hai {
       return Annotation(detect, (static_cast<void>(fmt.flush()), fmt.str()), annotationType);
   }
 
-  struct PredictWithLBPBody {
-      VisualContextAnnotator &vca_;
-      vector<Rect> detects_;
-      Mat frame_gray_;
-      vector<Annotation> result_;
-      vector<Annotation> &resultRef_;
-      const string annotationType;
-
-      PredictWithLBPBody(VisualContextAnnotator &u, const vector<Rect> detects, const Mat frame_gray,
-                         const string aAnnotationType) : vca_{u}, detects_{detects},
-                                                         frame_gray_{frame_gray},
-                                                         result_(vector<Annotation>(detects.size())),
-                                                         resultRef_(result_),
-                                                         annotationType{aAnnotationType} {}
-
-      void operator()(const tbb::blocked_range<size_t> &range) const {
-          for (size_t i = range.begin(); i!=range.end(); ++i)
-              resultRef_.push_back(vca_.predictWithLBPInRectangle(detects_[i], frame_gray_, annotationType));
-      }
-  };
-
   vector<Annotation> VisualContextAnnotator::predictWithLBP(const Mat &frame_gray) noexcept {
       tbb::mutex::scoped_lock lck{lbpLock1};
       static tbb::affinity_partitioner affinityLBP;
@@ -284,25 +263,6 @@ namespace hai {
       // critical section here
       return Annotation(detect, {caffe_fmt.str()}, classNames.at(static_cast<std::size_t>(classId)));
   }
-
-//    struct PredictWithCAFFEBody {
-//        VisualContextAnnotator& vca_;
-//        vector<Rect> detects_;
-//        Mat frame_;
-//        vector<Annotation> result_;
-//        vector<Annotation>& resultRef_;
-//
-//        PredictWithCAFFEBody(VisualContextAnnotator& u, vector<Rect> detects, const Mat frame
-//        )
-//                : vca_(u), detects_(detects), frame_(frame), result_(vector<Annotation>(detects.size())),
-//                  resultRef_(result_) {}
-//
-//        void operator()(const tbb::blocked_range<size_t>& range) const {
-//            for (size_t i = range.begin(); i != range.end(); ++i) {
-//                resultRef_.push_back(vca_.predictWithCAFFEInRectangle(detects_[i], frame_));
-//            }
-//        }
-//    };
 
   vector<Annotation> VisualContextAnnotator::predictWithCAFFE(const Mat frame, const Mat frame_gray) noexcept {
       tbb::mutex::scoped_lock lck{caffeLock1};
@@ -381,24 +341,6 @@ namespace hai {
 
       return Annotation(detect, "object", "contour");
   }
-
-  struct PredictWithTESSERACTBody {
-      VisualContextAnnotator &vca_;
-      vector<Rect> detects_;
-      Mat frame_gray_;
-      vector<Annotation> result_;
-      vector<Annotation> &resultRef_;
-
-      PredictWithTESSERACTBody(VisualContextAnnotator &u, vector<Rect> detects, const Mat frame_gray)
-        : vca_(u), detects_(detects), frame_gray_(frame_gray), result_(vector<Annotation>(detects.size())),
-          resultRef_(result_) {}
-
-      void operator()(const tbb::blocked_range<size_t> &range) const {
-          for (size_t i = range.begin(); i!=range.end(); ++i) {
-              resultRef_.push_back(vca_.predictWithTESSERACTInRectangle(detects_[i], frame_gray_));
-          }
-      }
-  };
 
   vector<Annotation> VisualContextAnnotator::predictWithTESSERACT(const Mat &frame_gray) noexcept {
       tbb::mutex::scoped_lock lck{tessLock};
