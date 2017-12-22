@@ -11,12 +11,14 @@
 #include "VisualContextAnnotator.hpp"
 
 namespace hai {
+  using namespace std;
+  using namespace cv;
   class VisualREPL {
    public:
-      VisualREPL(string aReplName,
+      VisualREPL(std::string aReplName,
                  ClipsAdapter &aClips,
-                 function<vector<Annotation>(cv::Mat, cv::Mat)> aAnnotationFN,
-                 function<void(std::vector<cv::Mat>, int, string, bool &)> aTrainFN,
+                 std::function<std::vector<Annotation>(cv::Mat, cv::Mat)> aAnnotationFN,
+                 std::function<void(std::vector<cv::Mat>, int, std::string, bool &)> aTrainFN,
                  bool aShowWindow)
         : name{aReplName}, annotationFN{aAnnotationFN}, trainFN{aTrainFN}, clips{aClips},
           showWindow{aShowWindow} {}

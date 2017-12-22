@@ -1,10 +1,12 @@
 #include "../headers/VisualContextAnnotator.hpp"
 
 namespace hai {
+  using namespace cv;
+  using namespace std;
   VisualContextAnnotator::VisualContextAnnotator() {
       model = face::LBPHFaceRecognizer::create();
       tess = std::make_unique<tesseract::TessBaseAPI>();
-      cascade_classifier = make_unique<CascadeClassifier>();
+      cascade_classifier = std::make_unique<CascadeClassifier>();
   }
 
   VisualContextAnnotator::~VisualContextAnnotator() {
@@ -303,8 +305,8 @@ namespace hai {
       classId = classNumber.x;
   }
 
-  std::vector<String> VisualContextAnnotator::readClassNames(const string filename = "synset_words.txt") {
-      std::vector<String> localClassNames;
+  std::vector<std::string> VisualContextAnnotator::readClassNames(const string filename = "synset_words.txt") {
+      std::vector<std::string> localClassNames;
       std::ifstream fp(filename);
       if (!fp.is_open()) {
           std::cerr << "File with classes labels not found: " << filename << std::endl;
@@ -327,7 +329,7 @@ namespace hai {
           resize(sub, sub, Size(detect.width*3, detect.height*3));
       }
 
-      tess->SetImage(static_cast<uchar *>(sub.data), sub.size().width, sub.size().height, sub.channels(),
+      tess->SetImage(sub.data, sub.size().width, sub.size().height, sub.channels(),
                      static_cast<int>(sub.step1()));
       int result = tess->Recognize(nullptr);
 
@@ -377,11 +379,7 @@ namespace hai {
   bool VisualContextAnnotator::checkKeyWasPressed(const int timeMillisToWait, const int key) noexcept {
       tbb::mutex::scoped_lock lck{wait_key_mutex};
 
-      if (waitKey(timeMillisToWait)==key) {
-          return true;
-      }
-
-      return false;
+      return waitKey(timeMillisToWait)==key;
   }
 
   tbb::mutex VisualContextAnnotator::imshow_mutex;
