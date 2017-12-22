@@ -54,7 +54,7 @@ namespace homeaiapp {
       vector<Annotation> result;
       vector<Annotation> dnn;
 
-      dnn =  caffeAnnotator.predictWithCAFFE(textAnnotator.detectObjectsWithCanny(f_g), f);
+      dnn = caffeAnnotator.predictWithCAFFE(textAnnotator.detectObjectsWithCanny(f_g), f);
 
       result.insert(result.end(), dnn.begin(), dnn.end());
 
@@ -123,7 +123,7 @@ namespace homeaiapp {
   /**
       * @function main
       */
-  int main(int argc, char **argv) {
+  int main() {
 
       textAnnotator.loadTESSERACTModel(".", "eng");
 
@@ -133,11 +133,19 @@ namespace homeaiapp {
       caffeAnnotator.loadCAFFEModel(caffe_model_file, caffe_prototxt_file, caffe_synset_words_file);
       objectsAnnotator.loadLBPModel(lbp_object_recognizer_name);
 
-      auto startRepl = [](std::size_t index, vector<shared_ptr<VisualREPL>> &cams) noexcept {
-        if (cams[index]->startAt(static_cast<int>(index), 30)) {
-            cout << "--(!)Camera found on " << index << " device index." << endl;
-            return true;
-        } else {
+      auto startRepl = [&](std::size_t index, vector<shared_ptr<VisualREPL>> &cams) noexcept {
+        try {
+            if (cams[index]->startAt(static_cast<int>(index), 30)) {
+                cout << "--(!)Camera found on " << index << " device index." << endl;
+                return true;
+            } else {
+                cameras[index].reset();
+                cerr << "--(!)Error opening video capture at: {" << index << "}\n You do have camera plugged in, right?"
+                     << endl;
+                return false;
+            }
+        }
+        catch (...) {
             cameras[index].reset();
             cerr << "--(!)Error opening video capture at: {" << index << "}\n You do have camera plugged in, right?"
                  << endl;
@@ -152,29 +160,29 @@ namespace homeaiapp {
                   cameras.push_back(make_shared<VisualREPL>(
                     VisualREPL(name + " [annotateObjectsFN]", clips, annotateObjectsFN,
                                updateLBPModelFN, WINDOW_SHOW)));
-                  atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
+                  atLeastOneCamera = atLeastOneCamera | startRepl(i, cameras);
                   break;
               }
               case 1: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + " [annotateFacesFN]", clips, annotateObjectsWithCaffeFN,
+                    VisualREPL(name + " [annotateTextsFN]", clips, annotateTextsFN,
                                updateLBPModelFN, WINDOW_SHOW)));
-                  atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
+                  atLeastOneCamera = atLeastOneCamera | startRepl(i, cameras);
                   break;
               }
               case 2: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + " [annotateTextsFN]", clips, annotateTextsFN,
+                    VisualREPL(name + " [annotateObjectsWithCaffeFN]", clips, annotateObjectsWithCaffeFN,
                                updateLBPModelFN, WINDOW_SHOW)));
-                  atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
+                  atLeastOneCamera = atLeastOneCamera | startRepl(i, cameras);
 
                   break;
               }
               case 3: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + " [annotateContoursFN]", clips, annotateFacesFN,
+                    VisualREPL(name + " [annotateFacesFN]", clips, annotateFacesFN,
                                updateLBPModelFN, WINDOW_SHOW)));
-                  atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
+                  atLeastOneCamera = atLeastOneCamera | startRepl(i, cameras);
 
                   break;
               }
@@ -199,8 +207,8 @@ namespace homeaiapp {
   }
 }
 
-int main(int argc, char **argv) {
-    return homeaiapp::main(argc, argv);
+int main() {
+    return homeaiapp::main();
 }
 
 
