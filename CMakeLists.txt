@@ -11,11 +11,6 @@ file(GLOB SOURCE_MAIN
 
 set(CMAKE_CXX_STANDARD 14)
 
-find_package(Boost REQUIRED)
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-endif()
-
 find_package(OpenCV REQUIRED)
 if(OpenCV_FOUND)
     include_directories(${OpenCV_INCLUDE_DIRS})
@@ -51,6 +46,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-set(LIBS ${LIBS} ${OpenCV_LIBS} ${Tesseract_LIBS} ${Boost_LIBS} ${TBB_LIBRARIES} ${Clips_LIBRARY}  Threads::Threads)
+set(LIBS ${LIBS} ${OpenCV_LIBS} ${Tesseract_LIBS} ${TBB_LIBRARIES} ${Clips_LIBRARY}  Threads::Threads)
 add_executable(home_ai_reloaded ${SOURCE_MAIN} src/ClipsAdapter.cpp)
 target_link_libraries( home_ai_reloaded  ${LIBS})

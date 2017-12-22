@@ -4,15 +4,11 @@ namespace hai {
   VisualContextAnnotator::VisualContextAnnotator() {
       model = face::LBPHFaceRecognizer::create();
       tess = std::make_unique<tesseract::TessBaseAPI>();
-      //net = make_unique<dnn::Net>();
       cascade_classifier = make_unique<CascadeClassifier>();
   }
 
   VisualContextAnnotator::~VisualContextAnnotator() {
-      cascade_classifier.release();
       model.release();
-      //net.release();
-      tess.release();
   }
 
   void VisualContextAnnotator::loadCascadeClassifier(const string cascadeClassifierPath) {
@@ -49,35 +45,30 @@ namespace hai {
       model->read(lbpModelPath);
   }
 
-//    void VisualContextAnnotator::loadCAFFEModel(const string modelBinPath, const string modelProtoTextPath,
-//                                                const string synthWordPath) {
-//        Ptr<dnn::Importer> importer;
-//        try                                     //Try to import Caffe GoogleNet model
-//        {
-//            importer = dnn::createCaffeImporter(modelProtoTextPath, modelBinPath);
-//        }
-//        catch (const cv::Exception& err)        //Importer can throw errors, we will catch them
-//        {
-//            std::cerr << err.msg << std::endl;
-//        }
-//        if (!importer) {
-//            std::cerr << "Can't load network by using the following files: " << std::endl;
-//            std::cerr << "prototxt:   " << modelProtoTextPath << std::endl;
-//            std::cerr << "caffemodel: " << modelBinPath << std::endl;
-//            std::cerr << "bvlc_googlenet.caffemodel can be downloaded here:" << std::endl;
-//            std::cerr << "http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel" << std::endl;
-//        }
-//
-//        importer->populateNet(*net);
-//
-//        importer.release();
-//        classNames = readClassNames(synthWordPath);
-//    }
+  void VisualContextAnnotator::loadCAFFEModel(const string modelBinPath, const string modelProtoTextPath,
+                                              const string synthWordPath) {
+      try                                     //Try to import Caffe GoogleNet model
+      {
+          net = std::make_unique<dnn::Net>(dnn::readNetFromCaffe(modelProtoTextPath, modelBinPath));
+      }
+      catch (const cv::Exception &err)        //Importer can throw errors, we will catch them
+      {
+          std::cerr << err.msg << std::endl;
+      }
+      if (net->empty()) {
+          std::cerr << "Can't load network by using the following files: " << std::endl;
+          std::cerr << "prototxt:   " << modelProtoTextPath << std::endl;
+          std::cerr << "caffemodel: " << modelBinPath << std::endl;
+          std::cerr << "bvlc_googlenet.caffemodel can be downloaded here:" << std::endl;
+          std::cerr << "http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel" << std::endl;
+      }
+      classNames = readClassNames(synthWordPath);
+  }
 
   vector<Rect> VisualContextAnnotator::detectWithCascadeClassifier(const Mat &frame_gray, const Size &minSize)noexcept {
       tbb::mutex::scoped_lock lck{cascadeClassLock};
       vector<Rect> result;
-      cascade_classifier->detectMultiScale(frame_gray, result, 1.1, 8, 0|CASCADE_SCALE_IMAGE, minSize, Size());
+      cascade_classifier->detectMultiScale(frame_gray, result, 1.1, 8, 0 | CASCADE_SCALE_IMAGE, minSize, Size());
       return result;
   }
 
@@ -275,27 +266,24 @@ namespace hai {
       return result;
   }
 
-//    Annotation VisualContextAnnotator::predictWithCAFFEInRectangle(const Rect detect, const Mat frame) noexcept {
-//
-//        tbb::mutex::scoped_lock lck{caffeInRectLock};
-//        cv::Mat img(Scalar::all(0));
-//        resize(frame(detect), img, Size(244, 244));
-//
-//        dnn::Blob inputBlob = dnn::Blob(img);
-//        //Convert Mat to dnn::Blob image batch
-//        net->setBlob(".data", inputBlob);        //set the network input
-//        net->forward();                          //compute output
-//        dnn::Blob prob = net->getBlob("prob");
-//        int classId;
-//        double classProb;
-//        getMaxClass(prob, classId, classProb);//find the best class
-//        stringstream caffe_fmt;
-//        caffe_fmt << "N:" << '\'' << classNames.at(static_cast<std::size_t>(classId)) << '\'' << " P:"
-//                  << classProb * 100 << "%" << std::endl;
-//        caffe_fmt << " ID:" << classId << std::endl;
-//        // critical section here
-//        return Annotation(detect, {caffe_fmt.str()}, classNames.at(static_cast<std::size_t>(classId)));
-//    }
+  Annotation VisualContextAnnotator::predictWithCAFFEInRectangle(const Rect &detect, const Mat &frame) noexcept {
+
+      cv::Mat img = dnn::blobFromImage(frame(detect), 1.0, Size(244, 244));
+
+      //Convert Mat to dnn::Blob image batch
+      net->setInput(img);        //set the network input
+      cv::Mat resultBlob = net->forward();                          //compute output
+      //dnn::Blob prob = net->get("prob");
+      int classId;
+      double classProb;
+      getMaxClass(resultBlob, classId, classProb);//find the best class
+      std::stringstream caffe_fmt;
+      caffe_fmt << "N:" << '\'' << classNames.at(static_cast<std::size_t>(classId)) << '\'' << " P:"
+                << classProb*100 << "%" << std::endl;
+      caffe_fmt << " ID:" << classId << std::endl;
+      // critical section here
+      return Annotation(detect, {caffe_fmt.str()}, classNames.at(static_cast<std::size_t>(classId)));
+  }
 
 //    struct PredictWithCAFFEBody {
 //        VisualContextAnnotator& vca_;
@@ -316,46 +304,44 @@ namespace hai {
 //        }
 //    };
 
-//    vector<Annotation> VisualContextAnnotator::predictWithCAFFE(const Mat frame, const Mat frame_gray) noexcept {
-//        tbb::mutex::scoped_lock lck{caffe2Lock};
-//        static tbb::affinity_partitioner affinityDNN2;
-//        vector<Rect> detects = detectObjectsWithCanny(frame_gray);
-//
-//        if (detects.size() <= 0)
-//            return vector<Annotation>();
-//
-//        PredictWithCAFFEBody parallelDNN(*this, detects, frame);
-//
-//        tbb::parallel_for(tbb::blocked_range<size_t>(0, detects.size()), // Index space for loop
-//                          parallelDNN,                    // Body of loop
-//                          affinityDNN2);
-//
-//        return std::move(parallelDNN.result_);
-//    }
+  vector<Annotation> VisualContextAnnotator::predictWithCAFFE(const Mat frame, const Mat frame_gray) noexcept {
+      tbb::mutex::scoped_lock lck{caffeLock1};
+      static tbb::affinity_partitioner affinityDNN2;
+      vector<Rect> detects = detectObjectsWithCanny(frame_gray);
 
-//    vector<Annotation> VisualContextAnnotator::predictWithCAFFE(const vector<Rect> detects, const Mat frame) noexcept {
-//        tbb::mutex::scoped_lock lck{caffeLock};
-//        static tbb::affinity_partitioner affinityDNN;
-//
-//        if (detects.size() <= 0)
-//            return vector<Annotation>();
-//
-//        PredictWithCAFFEBody parallelDNN(*this, detects, frame);
-//
-//        tbb::parallel_for(tbb::blocked_range<size_t>(0, detects.size()), // Index space for loop
-//                          parallelDNN,                    // Body of loop
-//                          affinityDNN);
-//
-//        return std::move(parallelDNN.result_);
-//    }
+      if (detects.size() <= 0)
+          return vector<Annotation>();
+
+      vector<Annotation> result;
+      for (auto &&rect : detects) {
+          result.push_back(predictWithCAFFEInRectangle(rect, frame));
+      }
+
+      return result;
+  }
+
+  vector<Annotation> VisualContextAnnotator::predictWithCAFFE(const vector<Rect> &detects, const Mat &frame) noexcept {
+      tbb::mutex::scoped_lock lck{caffeLock};
+      static tbb::affinity_partitioner affinityDNN;
+
+      if (detects.size() <= 0)
+          return vector<Annotation>();
+
+      vector<Annotation> result;
+      for (auto &&rect : detects) {
+          result.push_back(predictWithCAFFEInRectangle(rect, frame));
+      }
+
+      return result;
+  }
 
   /* Find best class for the blob (i. e. class with maximal probability) */
-//    void VisualContextAnnotator::getMaxClass(dnn::Blob& probBlob, int& classId, double& classProb) {
-//        Mat probMat = probBlob.matRefConst().reshape(1, 1); //reshape the blob to 1x1000 matrix
-//        Point classNumber;
-//        minMaxLoc(probMat, NULL, &classProb, NULL, &classNumber);
-//        classId = classNumber.x;
-//    }
+  void VisualContextAnnotator::getMaxClass(cv::Mat &probBlob, int &classId, double &classProb) {
+      Mat probMat = probBlob.reshape(1, 1); //reshape the blob to 1x1000 matrix
+      Point classNumber;
+      minMaxLoc(probMat, nullptr, &classProb, nullptr, &classNumber);
+      classId = classNumber.x;
+  }
 
   std::vector<String> VisualContextAnnotator::readClassNames(const string filename = "synset_words.txt") {
       std::vector<String> localClassNames;

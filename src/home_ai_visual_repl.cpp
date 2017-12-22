@@ -20,33 +20,28 @@ namespace homeaiapp {
   VisualContextAnnotator textAnnotator;
   VisualContextAnnotator objectsAnnotator;
   VisualContextAnnotator contoursAnnotator;
-
+  VisualContextAnnotator caffeAnnotator;
   std::size_t MAX_CAMERAS = 5;
   bool WINDOW_SHOW = true;
 
-  vector<Annotation> annotateFaceContoursFN(const Mat &f, const Mat &f_g) noexcept {
+  vector<Annotation> annotateFacesFN(const Mat &f, const Mat &f_g) noexcept {
       vector<Annotation> result;
       vector<Annotation> face;
-      vector<Annotation> contours;
+
+      face = faceAnnotator.predictWithLBP(f_g);
+
+      result.insert(result.end(), face.begin(), face.end());
+
+      return result;
+  }
+
+  vector<Annotation> annotateObjectsWithLBPFN(const Mat &f, const Mat &f_g) noexcept {
+      vector<Annotation> result;
       vector<Annotation> objects;
 
-      tbb::parallel_invoke(
-        [&]
-          () {
-          objects = objectsAnnotator.predictWithLBP(textAnnotator.detectObjectsWithCanny(f_g), f_g, "object");
-        },
-        [&]
-          () {
-          face = faceAnnotator.predictWithLBP(f_g);
-        },
-        [&]
-          () {
-          contours = contoursAnnotator.detectContoursWithCanny(f_g);
-        }
-      );
-      result.insert(result.end(), face.begin(), face.end());
+      objects = objectsAnnotator.predictWithLBP(textAnnotator.detectObjectsWithCanny(f_g), f_g, "object");
+
       result.insert(result.end(), objects.begin(), objects.end());
-      result.insert(result.end(), contours.begin(), contours.end());
 
       return result;
   }
@@ -54,15 +49,14 @@ namespace homeaiapp {
   vector<Annotation> annotateObjectsFN(const Mat &f, const Mat &f_g) noexcept {
       vector<Annotation> result;
       vector<Annotation> face;
-      vector<Annotation> objects;
+      vector<Annotation> dnn;
       vector<Annotation> contours;
-      // vector<Annotation> dnn;
 
       tbb::parallel_invoke(
 
         [&]
           () {
-          objects = objectsAnnotator.predictWithLBP(textAnnotator.detectObjectsWithCanny(f_g), f_g, "object");
+          dnn = caffeAnnotator.predictWithCAFFE(textAnnotator.detectObjectsWithCanny(f_g), f);
         },
 
         [&]
@@ -74,31 +68,28 @@ namespace homeaiapp {
           contours = contoursAnnotator.detectContoursWithCanny(f_g);
         }
       );
-      result.insert(result.end(), objects.begin(), objects.end());
       result.insert(result.end(), face.begin(), face.end());
       result.insert(result.end(), contours.begin(), contours.end());
-      //result.insert(result.end(), dnn.begin(), dnn.end());
+      result.insert(result.end(), dnn.begin(), dnn.end());
 
       return result;
   }
 
-  vector<Annotation> annotateTextContoursFN(const Mat &f, const Mat &f_g) noexcept {
+  vector<Annotation> annotateTextsFN(const Mat &f, const Mat &f_g) noexcept {
       vector<Annotation> result;
-      vector<Annotation> objects;
+      vector<Annotation> texts;
+
+      texts = textAnnotator.predictWithTESSERACT(f_g);
+      result.insert(result.end(), texts.begin(), texts.end());
+
+      return result;
+  }
+
+  vector<Annotation> annotateContoursFN(const Mat &f, const Mat &f_g) noexcept {
+      vector<Annotation> result;
       vector<Annotation> contours;
 
-      tbb::parallel_invoke(
-        [&]
-          () {
-          objects = textAnnotator.predictWithTESSERACT(f_g);
-
-        },
-        [&]
-          () {
-          contours = objectsAnnotator.detectContoursWithCanny(f_g);
-        }
-      );
-      result.insert(result.end(), objects.begin(), objects.end());
+      contours = contoursAnnotator.detectContoursWithCanny(f_g);
       result.insert(result.end(), contours.begin(), contours.end());
 
       return result;
@@ -127,7 +118,7 @@ namespace homeaiapp {
       faceAnnotator.loadCascadeClassifier(face_cascade_name);
       faceAnnotator.loadLBPModel(lbp_recognizer_name);
 
-      //objectsAnnotator.loadCAFFEModel(modelBin, modelTxt, "synset_words.txt");
+      caffeAnnotator.loadCAFFEModel(modelBin, modelTxt, "synset_words.txt");
       objectsAnnotator.loadLBPModel(lbp_recognizer_name);
       auto startRepl = [](std::size_t index, vector<shared_ptr<VisualREPL>> &cams) noexcept {
         if (cams[index]->startAt(static_cast<int>(index), 30)) {
@@ -153,14 +144,14 @@ namespace homeaiapp {
               }
               case 1: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + " [annotateFaceContoursFN]", clips, annotateFaceContoursFN,
+                    VisualREPL(name + " [annotateFacesFN]", clips, annotateFacesFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
                   break;
               }
               case 2: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + " [annotateTextContoursFN]", clips, annotateTextContoursFN,
+                    VisualREPL(name + " [annotateTextsFN]", clips, annotateTextsFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
 
@@ -168,7 +159,7 @@ namespace homeaiapp {
               }
               case 3: {
                   cameras.push_back(make_shared<VisualREPL>(
-                    VisualREPL(name + " [annotateFaceContoursFN]", clips, annotateFaceContoursFN,
+                    VisualREPL(name + " [annotateContoursFN]", clips, annotateObjectsWithLBPFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera || startRepl(i, cameras);
 
