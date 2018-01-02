@@ -37,7 +37,7 @@ namespace hai {
               return false;
           }
 
-          tVisualLoop = std::thread(&VisualREPL::startVisualLoop, this, framesPerSecond);
+          tVisualLoop = std::thread([this](int fps){this->startVisualLoop(fps);}, framesPerSecond);
           tVisualLoop.detach();
           return true;
       }
@@ -51,7 +51,7 @@ namespace hai {
               return;
           }
 
-          tVisualLoop = std::thread(&VisualREPL::startVisualLoop, this, framesPerSecond);
+          tVisualLoop = std::thread([this]{this->startVisualLoop(30);});
           tVisualLoop.detach();
       }
 

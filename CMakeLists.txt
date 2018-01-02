@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 3.0)
 project(home_ai_reloaded C CXX)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-set (CMAKE_CXX_FLAGS "-O3 -Weverything  -Wno-c++98-compat -Wno-global-constructors -Wno-exit-time-destructors -Wno-padded -Wno-missing-prototypes -Wno-missing-variable-declarations")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/" )
+set (CMAKE_CXX_FLAGS "   -v -m64  -O3 -Weverything  -Wno-c++98-compat -Wno-global-constructors -Wno-exit-time-destructors -Wno-padded -Wno-missing-prototypes -Wno-missing-variable-declarations")
 
 file(GLOB SOURCE_MAIN
         "${CMAKE_SOURCE_DIR}/headers/*.hpp"
         "${CMAKE_SOURCE_DIR}/src/*.cpp"
         )
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_EXTENSIONS ON)
 
 find_package(OpenCV REQUIRED)
 if(OpenCV_FOUND)
