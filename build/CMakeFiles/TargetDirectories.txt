@@ -1,0 +1,3 @@
+/home/etomov/Projects/hobby/home_ai_reloaded_cmake/build/CMakeFiles/rebuild_cache.dir
+/home/etomov/Projects/hobby/home_ai_reloaded_cmake/build/CMakeFiles/edit_cache.dir
+/home/etomov/Projects/hobby/home_ai_reloaded_cmake/build/CMakeFiles/home_ai_reloaded.dir

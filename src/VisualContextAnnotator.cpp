@@ -325,9 +325,6 @@ namespace hai {
   Annotation
   VisualContextAnnotator::predictWithTESSERACTInRectangle(const Rect &detect, const Mat &frame_gray) noexcept {
       Mat sub = frame_gray(detect).clone();
-      if (detect.height < 50) {
-          resize(sub, sub, Size(detect.width*3, detect.height*3));
-      }
 
       tess->SetImage(sub.data, sub.size().width, sub.size().height, sub.channels(),
                      static_cast<int>(sub.step1()));
@@ -349,8 +346,12 @@ namespace hai {
       static tbb::affinity_partitioner affinityTESSERACT;
 
       vector<Rect> detects = detectWithMorphologicalGradient(frame_gray);
-      if (detects.size() <= 0)
+      if (detects.size() <= 0){
+        detects = detectObjectsWithCanny(frame_gray,77,Size(8,8));
+        if(detects.size() <= 0){
           return vector<Annotation>();
+        }
+      }
 
       vector<Annotation> result;
       for (auto &&rect : detects) {

@@ -182,7 +182,7 @@ namespace hai {
               if (showWindow && !trainingInProgressFlag) {
                   vector<vector<Point>> contours;
                   for (auto &annot : annotations) {
-                      if (annot.getType().compare("contour")==0) {
+                      if (annot.getType().compare("contour")==0 && !annot.getContour().empty()) {
                           contours.push_back(annot.getContour());
                       } else {
                           putText(frame, annot.getDescription(),
