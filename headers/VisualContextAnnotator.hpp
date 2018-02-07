@@ -49,7 +49,7 @@ namespace hai {
 
       std::vector<cv::Rect>
       detectObjectsWithCanny(const cv::Mat &frame_gray, const double &lowThreshold = 77,
-                             const cv::Size &minSize = cv::Size(80, 80)) noexcept;
+                             const cv::Size &minSize = cv::Size(80, 80),const cv::Size &maxSize = cv::Size(400, 400)) noexcept;
 
       std::vector<Annotation>
       detectContoursWithCanny(const cv::Mat &frame_gray, const double &lowThreshold = 77,

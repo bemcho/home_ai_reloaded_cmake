@@ -156,14 +156,14 @@ namespace homeaiapp {
       for (std::size_t i = 0; i < MAX_CAMERAS; i++) {
           std::string name{window_name + " Stream >> " + std::to_string(i)};
           switch (i) {
-              case 1: {
+              case 0: {
                   cameras.push_back(make_shared<VisualREPL>(
                     VisualREPL(name + " [annotateObjectsFN]", clips, annotateObjectsFN,
                                updateLBPModelFN, WINDOW_SHOW)));
                   atLeastOneCamera = atLeastOneCamera | startRepl(i, cameras);
                   break;
               }
-              case 0: {
+              case 1: {
                   cameras.push_back(make_shared<VisualREPL>(
                     VisualREPL(name + " [annotateTextsFN]", clips, annotateTextsFN,
                                updateLBPModelFN, WINDOW_SHOW)));

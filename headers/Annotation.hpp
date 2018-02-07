@@ -28,11 +28,16 @@ namespace hai {
 
       inline const std::vector<cv::Point> getContour() noexcept { return contour; }
 
+      //inline bool isEmpty(){return this == &EMPTY;}
+
+     //static const  Annotation& getEmpty(){return EMPTY;}
    private:
       cv::Rect rectangle;
       std::vector<cv::Point> contour;
       std::string description;
       std::string type;
+
   };
+inline  const Annotation EMPTY;
 }
 
